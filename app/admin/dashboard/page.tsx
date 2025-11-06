@@ -22,6 +22,8 @@ export default function AdminDashboard() {
   const [liveLink, setLiveLink] = useState('');
   const [githubLink, setGithubLink] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
     checkAuth();
@@ -56,6 +58,77 @@ export default function AdminDashboard() {
     router.push('/admin');
   };
 
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Text formatting helpers
+  const insertFormatting = (prefix: string, suffix: string = '', placeholder: string = 'text') => {
+    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = description.substring(start, end);
+    const textToInsert = selectedText || placeholder;
+
+    const newText =
+      description.substring(0, start) +
+      prefix + textToInsert + suffix +
+      description.substring(end);
+
+    setDescription(newText);
+
+    // Set cursor position after insertion
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + prefix.length + textToInsert.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  // Handle image insertion into description
+  const handleDescriptionImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Image = reader.result as string;
+        const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const imageMarkdown = `![${file.name}](${base64Image})`;
+
+        const newText =
+          description.substring(0, start) +
+          imageMarkdown +
+          description.substring(start);
+
+        setDescription(newText);
+
+        // Reset cursor position
+        setTimeout(() => {
+          textarea.focus();
+          const newCursorPos = start + imageMarkdown.length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input so the same file can be selected again
+    e.target.value = '';
+  };
+
   const resetForm = () => {
     setTitle('');
     setDescription('');
@@ -65,12 +138,17 @@ export default function AdminDashboard() {
     setLiveLink('');
     setGithubLink('');
     setImageUrl('');
+    setImageFile(null);
+    setImagePreview('');
     setEditingProject(null);
     setShowForm(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Use image preview (base64) if file was uploaded, otherwise use imageUrl
+    const finalImageUrl = imagePreview || imageUrl || null;
 
     const projectData = {
       title,
@@ -80,7 +158,7 @@ export default function AdminDashboard() {
       tech_stack: techStack.split(',').map(t => t.trim()),
       live_link: liveLink || null,
       github_link: githubLink || null,
-      image_url: imageUrl || null,
+      image_url: finalImageUrl,
     };
 
     try {
@@ -116,6 +194,8 @@ export default function AdminDashboard() {
     setLiveLink(project.live_link || '');
     setGithubLink(project.github_link || '');
     setImageUrl(project.image_url || '');
+    setImageFile(null);
+    setImagePreview('');
     setShowForm(true);
   };
 
@@ -191,26 +271,116 @@ export default function AdminDashboard() {
                   {showPreview ? 'Hide Preview' : 'Show Preview'}
                 </button>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+
+              <div className="space-y-4">
+                <div className="w-full border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-background-dark">
+                  {/* Toolbar */}
+                  <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting('# ', '', 'Heading 1')}
+                      className="px-2 py-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-sm font-semibold"
+                      title="Heading 1"
+                    >
+                      H1
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting('## ', '', 'Heading 2')}
+                      className="px-2 py-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-sm font-semibold"
+                      title="Heading 2"
+                    >
+                      H2
+                    </button>
+                    <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting('**', '**', 'bold')}
+                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Bold"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting('*', '*', 'italic')}
+                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Italic"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <line x1="19" y1="4" x2="10" y2="4" strokeWidth={2} strokeLinecap="round" />
+                        <line x1="14" y1="20" x2="5" y2="20" strokeWidth={2} strokeLinecap="round" />
+                        <line x1="15" y1="4" x2="9" y2="20" strokeWidth={2} strokeLinecap="round" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting('`', '`', 'code')}
+                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Inline Code"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting('```\n', '\n```', 'code block')}
+                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Code Block"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2} />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9l-2 2 2 2m6-4l2 2-2 2" />
+                      </svg>
+                    </button>
+                    <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                    <label className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors cursor-pointer" title="Insert Image">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
+                        <circle cx="8.5" cy="8.5" r="1.5" strokeWidth={2} />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15l-5-5L5 21" />
+                      </svg>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleDescriptionImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting('\n\n', '', '')}
+                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Line Break"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16M4 6h16M4 18h7" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Textarea */}
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     required
                     rows={10}
-                    placeholder="Use markdown: **bold**, *italic*, `code`, ```code block```"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-vibrant-accent outline-none bg-white dark:bg-background-dark font-mono text-sm"
+                    placeholder="Write text here ..."
+                    className="w-full px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-background-dark text-base resize-none border-0"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Formatting: **bold** *italic* `inline code` ```code block``` | Double line break for paragraphs
-                  </p>
                 </div>
-                
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Use toolbar buttons for formatting or type manually: **bold** *italic* `code` ```code block```
+                </p>
+
                 {showPreview && (
-                  <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+                  <div className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
                     <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Preview:</p>
-                    <FormattedDescription 
+                    <FormattedDescription
                       text={description || 'Your formatted description will appear here...'}
                       className="text-base text-gray-800 dark:text-gray-200"
                     />
@@ -250,7 +420,7 @@ export default function AdminDashboard() {
                 onChange={(e) => setTechStack(e.target.value)}
                 required
                 placeholder="React, TypeScript, Tailwind CSS"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-vibrant-accent outline-none bg-white dark:bg-background-dark"
+                className="w-full  px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-vibrant-accent outline-none bg-white dark:bg-background-dark"
               />
             </div>
 
@@ -276,15 +446,51 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Image URL</label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-vibrant-accent outline-none bg-white dark:bg-background-dark"
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Image URL</label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-vibrant-accent outline-none bg-white dark:bg-background-dark"
+                />
+              </div>
+
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="block text-sm font-medium">Or Upload Image</label>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">(JPG, PNG, GIF - Max 5MB)</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label className="flex-1 cursor-pointer">
+                    <div className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-vibrant-accent transition-colors text-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {imageFile ? imageFile.name : 'Click to upload or drag and drop'}
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  {(imagePreview || imageUrl) && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={imagePreview || imageUrl}
+                        alt="Preview"
+                        className="w-20 h-20 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                      />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Note: Uploaded images will be converted to base64 and stored in the database. For production, consider using a proper image hosting service.
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-4">
@@ -333,12 +539,12 @@ export default function AdminDashboard() {
                     <td className="py-3 px-4">
                       <div className="flex flex-wrap gap-1">
                         {project.tech_stack.slice(0, 3).map((tech, i) => (
-                          <span key={i} className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                          <span key={i} className="text-xs bg-white border border-black text-black px-2 py-1 rounded">
                             {tech}
                           </span>
                         ))}
                         {project.tech_stack.length > 3 && (
-                          <span className="text-xs text-gray-500">+{project.tech_stack.length - 3}</span>
+                          <span className="text-xs text-black">+{project.tech_stack.length - 3}</span>
                         )}
                       </div>
                     </td>

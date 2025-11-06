@@ -172,7 +172,7 @@ export default function ProjectPage() {
                 {project.tech_stack.map((tech, i) => (
                   <span
                     key={i}
-                    className="border border-black bg-transparent px-4 py-1.5 rounded-full text-sm font-medium"
+                    className="border-2 border-black bg-white text-black px-4 py-1.5 rounded-full text-sm font-medium"
                   >
                     {tech}
                   </span>

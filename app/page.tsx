@@ -163,7 +163,7 @@ export default function Home() {
               No featured projects yet. Add some in the admin panel!
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredProjects.map((project, index) => (
                 <Link
                   key={project.id}
@@ -171,6 +171,29 @@ export default function Home() {
                   className="card group block bg-white border-2 border-black rounded-xl overflow-hidden transition-all duration-500 hover:transform hover:-translate-y-1 hover:shadow-xl opacity-0"
                   style={{ animation: `fadeInUp 0.6s ease-out ${index * 0.1}s forwards` }}
                 >
+                  {/* Project Image */}
+                  {project.image_url && (
+                    <div className="relative w-full h-64 bg-gray-100 overflow-hidden">
+                      {project.image_url.startsWith('data:') ? (
+                        // Base64 images use regular img tag
+                        <img
+                          src={project.image_url}
+                          alt={project.title}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        // External URLs use Next.js Image
+                        <Image
+                          src={project.image_url}
+                          alt={project.title}
+                          fill
+                          className="object-contain group-hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      )}
+                    </div>
+                  )}
+
                   <div className="p-5 space-y-3">
                     {/* Day Badge */}
                     {project.day_number && (
@@ -180,12 +203,12 @@ export default function Home() {
                         </span>
                       </div>
                     )}
-                    
+
                     {/* Title */}
                     <h4 className="text-lg font-black tracking-tight text-black leading-tight group-hover:text-vibrant-accent transition-colors min-h-[3rem]">
                       {project.title}
                     </h4>
-                    
+
                     {/* Tech Stack */}
                     <div className="flex flex-wrap gap-1.5">
                       {project.tech_stack.slice(0, 3).map((tech, i) => (
@@ -197,14 +220,14 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
-                    
+
                     {/* View Arrow */}
                     <div className="flex items-center text-xs text-black font-medium pt-1 group-hover:text-vibrant-accent transition-colors">
                       View Project
-                      <svg 
-                        className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
+                      <svg
+                        className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform"
+                        fill="none"
+                        viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
