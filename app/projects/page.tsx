@@ -17,7 +17,7 @@ export default function ProjectsPage() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .order('id', { ascending: true });
+        .order('day_number', { ascending: true });
 
       if (error) throw error;
       setProjects(data || []);
