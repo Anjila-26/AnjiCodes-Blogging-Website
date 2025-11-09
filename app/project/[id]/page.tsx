@@ -167,42 +167,58 @@ export default function ProjectPage() {
                 className="text-lg md:text-xl text-subtext-light dark:text-subtext-dark leading-relaxed"
               />
               
-              {/* Tech Stack */}
-              <div className="flex flex-wrap gap-2 pt-4">
-                {project.tech_stack.map((tech, i) => (
-                  <span
-                    key={i}
-                    className="border-2 border-black bg-white text-black px-4 py-1.5 rounded-full text-sm font-medium"
-                  >
-                    {tech}
-                  </span>
-                ))}
+              {/* Project Links Section */}
+              <div className="bg-gray-50 border-2 border-black rounded-xl p-6 mt-8">
+                <h3 className="text-xl font-bold text-black mb-4">Project Links</h3>
+                <div className="flex flex-wrap gap-4">
+                  {project.live_link ? (
+                    <a
+                      href={project.live_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-black text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-800 transition-all shadow-md"
+                    >
+                      <span className="material-symbols-outlined text-xl">open_in_new</span>
+                      View Live Demo
+                    </a>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 bg-gray-300 text-gray-500 px-8 py-3 rounded-lg font-medium cursor-not-allowed">
+                      <span className="material-symbols-outlined text-xl">open_in_new</span>
+                      Live Demo Not Available
+                    </div>
+                  )}
+                  {project.github_link ? (
+                    <a
+                      href={project.github_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 border-2 border-black bg-white text-black px-8 py-3 rounded-lg font-medium hover:bg-black hover:text-white transition-all shadow-md"
+                    >
+                      <span className="material-symbols-outlined text-xl">code</span>
+                      View Source Code
+                    </a>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 border-2 border-gray-300 bg-gray-100 text-gray-500 px-8 py-3 rounded-lg font-medium cursor-not-allowed">
+                      <span className="material-symbols-outlined text-xl">code</span>
+                      Source Code Not Available
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-4 pt-6">
-                {project.live_link && (
-                  <a
-                    href={project.live_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-black text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-800 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-xl">open_in_new</span>
-                    View Live
-                  </a>
-                )}
-                {project.github_link && (
-                  <a
-                    href={project.github_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 border-2 border-black bg-transparent text-black px-8 py-3 rounded-lg font-medium hover:bg-black hover:text-white transition-all"
-                  >
-                    <span className="material-symbols-outlined text-xl">code</span>
-                    Source Code
-                  </a>
-                )}
+              {/* Tech Stack */}
+              <div className="pt-6">
+                <h3 className="text-xl font-bold text-black mb-3">Technologies Used</h3>
+                <div className="flex flex-wrap gap-2">
+                  {project.tech_stack.map((tech, i) => (
+                    <span
+                      key={i}
+                      className="border-2 border-black bg-white text-black px-4 py-1.5 rounded-full text-sm font-medium"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
