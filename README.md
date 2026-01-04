@@ -1,4 +1,5 @@
-# 30 Days, 30 Projects Challenge
+# 30 Days, 30 Projects Challenge (AnjiCodes-Blogging-Website)
+
 
 This repository documents my journey of completing 30 projects in 30 days. It's a personal challenge to learn, grow, and build a strong portfolio.
 
